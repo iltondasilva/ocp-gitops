@@ -1,0 +1,23 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: webapp-demo-alerts
+  namespace: webapp-demo
+spec:
+  groups:
+    - name: webapp-demo
+      rules:
+        - alert: WebReplicasBelowDesired
+          expr: kube_deployment_status_replicas_available{namespace="webapp-demo",deployment="web"} < 3
+          for: 30s
+          labels:
+            severity: warning
+          annotations:
+            summary: "web has fewer than 3 available replicas"
+        - alert: WebContainerRestarting
+          expr: increase(kube_pod_container_status_restarts_total{namespace="webapp-demo"}[10m]) > 3
+          for: 1m
+          labels:
+            severity: warning
+          annotations:
+            summary: "a web container has restarted more than 3 times in 10 minutes"
